@@ -11,6 +11,8 @@
 #include <WifiManager.h>
 #include <MqttManager.h>
 
+#include <Firmware.h>
+
 // Sensores
 PhSensor sensorPH(PH);
 CondutSensor sensorCondutividade(CONDUCTIVITY);
@@ -24,9 +26,9 @@ WifiManager wifiManager;
 MqttManager mqttManager(wifiManager.getClient());
 
 // Configurações
-const unsigned long TEMPO_TURNO = 5000;
-const unsigned long INTERVALO_LEITURA = 100;
-const uint8_t CICLOS_AQUECIMENTO = 2;
+extern const unsigned long TEMPO_TURNO = 5000;
+extern const unsigned long INTERVALO_LEITURA = 100;
+extern const uint8_t CICLOS_AQUECIMENTO = 2;
 
 // Controle
 bool turnoPH = true;
@@ -39,6 +41,10 @@ unsigned long ultimaLeitura = 0;
 
 float ultimoPH = NAN;
 float ultimaCondutividade = NAN;
+float ultimaTemperatura = NAN;
+bool ultimoNivelAgua = false;
+
+bool dadosProntos = false;
 
 void setup()
 {
@@ -68,105 +74,11 @@ void setup()
 
 void loop()
 {
-    unsigned long agora = millis();
+    manterConexoes();
 
-    // Mantém conexões
-    wifiManager.reconnect();
+    coletarLeituras();
 
-    if (wifiManager.isConnected())
-    {
-        mqttManager.reconnect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
-        mqttManager.loop();
-    }
+    alternarTurnos();
 
-    // Leitura dos sensores
-    if (agora - ultimaLeitura >= INTERVALO_LEITURA)
-    {
-        ultimaLeitura = agora;
-
-        if (turnoPH)
-            sensorPH.coletarAmostra();
-        else
-            sensorCondutividade.coletarAmostra();
-    }
-
-    // Alternância entre sensores
-    if (agora - inicioTurno >= TEMPO_TURNO)
-    {
-        inicioTurno = agora;
-
-        if (turnoPH)
-        {
-            ultimoPH = sensorPH.calcularMediaADC();
-
-            Serial.print("ADC pH: ");
-            Serial.println(ultimoPH);
-
-            sensorCondutividade.iniciarLeituras();
-        }
-        else
-        {
-            ultimaCondutividade = sensorCondutividade.calcularMediaADC();
-
-            Serial.print("ADC Condutividade: ");
-            Serial.println(ultimaCondutividade);
-
-            float temperatura = sensorTemperatura.lerGraus();
-            bool temAgua = sensorNivelAgua.temAgua();
-
-            sensorTemperatura.solicitarLeitura();
-
-            if (!aquecimentoConcluido)
-            {
-                ciclosConcluidos++;
-
-                Serial.print("Aquecimento ");
-                Serial.print(ciclosConcluidos);
-                Serial.print("/");
-                Serial.println(CICLOS_AQUECIMENTO);
-
-                if (ciclosConcluidos >= CICLOS_AQUECIMENTO)
-                {
-                    aquecimentoConcluido = true;
-                    Serial.println("Sistema pronto.");
-                }
-            }
-            else
-            {
-                Serial.println("========== MQTT ==========");
-
-                Serial.print("pH ADC: ");
-                Serial.println(ultimoPH);
-
-                Serial.print("Condutividade ADC: ");
-                Serial.println(ultimaCondutividade);
-
-                Serial.print("Temperatura: ");
-                Serial.println(temperatura);
-
-                Serial.print("Água: ");
-                Serial.println(temAgua ? "SIM" : "NAO");
-
-                // Monta o JSON
-                String payload = "{";
-                payload += "\"adc_ph\":" + String(ultimoPH, 0);
-                payload += ",\"adc_condut\":" + String(ultimaCondutividade, 0);
-                payload += ",\"temperature\":" + String(temperatura, 2);
-                payload += ",\"water_level\":" + String(temAgua ? 1 : 0);
-                payload += "}";
-
-                // Exibe o JSON
-                Serial.println(payload);
-
-                // Publica no MQTT
-                mqttManager.publish(payload.c_str());
-
-                Serial.println("==========================");
-            }
-
-            sensorPH.iniciarLeituras();
-        }
-
-        turnoPH = !turnoPH;
-    }
+    publicarDados();
 }
