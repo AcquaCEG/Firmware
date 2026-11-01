@@ -8,7 +8,7 @@
 #define MQTT_HOST "n22ff7aa.ala.us-east-1.emqxsl.com"
 #define MQTT_PORT 8883
 #define MQTT_TOPIC "acquaceg/devices/arduino-01/sensors/raw"
-#define MQTT_CLIENT_ID "acquaceg-backend"
+#define MQTT_CLIENT_ID "acquaceg-arduino-01"
 #define MQTT_USERNAME "arduino-01"
 #define MQTT_PASSWORD "AcquaCEG-System01"
 

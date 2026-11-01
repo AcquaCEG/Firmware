@@ -54,7 +54,7 @@ void MqttManager::loop()
 bool MqttManager::publish(const char* payload)
 {
     if (!_client.connected())
-        return;
+        return false;
         
     return _client.publish(_topic, payload);
 }
