@@ -32,7 +32,7 @@ public:
     bool publish(const char* payload);
 
 private:
-    const char* _host = MQTT_HOST;
+    const char* _host = MQTT_BROKER;
     const uint16_t _port = MQTT_PORT;
     const char* _topic = MQTT_TOPIC;
 

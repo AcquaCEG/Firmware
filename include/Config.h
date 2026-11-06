@@ -1,16 +1,13 @@
-
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#define WIFI_SSID "Redmi 12C"
-#define WIFI_PASSWORD "Toyota22"
-
-#define MQTT_HOST "n22ff7aa.ala.us-east-1.emqxsl.com"
-#define MQTT_PORT 8883
-#define MQTT_TOPIC "acquaceg/devices/arduino-01/sensors/raw"
-#define MQTT_TOPIC_STATUS "acquaceg/devices/arduino-01/status"
-#define MQTT_CLIENT_ID "acquaceg-arduino-01"
-#define MQTT_USERNAME "arduino-01"
-#define MQTT_PASSWORD "AcquaCEG-System01"
+// Usando nomes em maiúsculo para não quebrar as variáveis internas da biblioteca WiFi
+#define CONF_SSID          WIFI_SSID
+#define CONF_PASSWORD      WIFI_PASSWORD
+#define CONF_MQTT_SERVER   MQTT_BROKER
+#define CONF_MQTT_USER     MQTT_USERNAME
+#define CONF_MQTT_PASS     MQTT_PASSWORD
+#define CONF_MQTT_PORT     MQTT_PORT
+#define CONF_TOPICO_PUB    MQTT_TOPIC
 
 #endif

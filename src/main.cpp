@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include "Pins.h"
-#include "Config.h"
+#include "Config.h" // <-- Suas variáveis const char* estão aqui dentro!
 
 #include <PhSensor.h>
 #include <CondutSensor.h>
@@ -46,17 +46,33 @@ bool ultimoNivelAgua = false;
 
 bool dadosProntos = false;
 
+String dynamicClientId = "";
+
 void setup()
 {
     Serial.begin(115200);
 
     // Wi-Fi
     wifiManager.begin();
-    wifiManager.connect(WIFI_SSID, WIFI_PASSWORD);
+    // Atualizado para usar os novos nomes do Config.h
+    wifiManager.connect(CONF_SSID, CONF_PASSWORD);
 
     // MQTT
     mqttManager.begin();
-    mqttManager.connect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
+    
+    // ESCALABILIDADE: Gerando o Client ID único a partir do MAC da Arduino Uno R4
+    uint8_t mac[6];
+    WiFi.macAddress(mac);
+    
+    dynamicClientId = "Arduino-";
+    for (int i = 0; i < 6; i++) {
+        if (mac[i] < 0x10) dynamicClientId += "0";
+        dynamicClientId += String(mac[i], HEX);
+    }
+    dynamicClientId.toUpperCase();
+
+    // Atualizado para usar os novos nomes do Config.h e o ID dinâmico global
+    mqttManager.connect(dynamicClientId.c_str(), CONF_MQTT_USER, CONF_MQTT_PASS);
 
     // Sensores
     sensorPH.begin();
@@ -74,11 +90,12 @@ void setup()
 
 void loop()
 {
-    manterConexoes();
+    manterConexoes(dynamicClientId.c_str());
 
     coletarLeituras();
 
     alternarTurnos();
 
+    // Lembre-se de usar a variável `topico_pub` dentro do seu gerenciador/função de publicação!
     publicarDados();
 }

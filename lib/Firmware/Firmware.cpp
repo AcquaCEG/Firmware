@@ -5,13 +5,13 @@
 
 #include <Arduino.h>
 
-void manterConexoes() {
+void manterConexoes(const char* clientId) {
 
     wifiManager.reconnect();
 
     if (wifiManager.isConnected())
     {
-        mqttManager.reconnect(MQTT_CLIENT_ID, MQTT_USERNAME, MQTT_PASSWORD);
+        mqttManager.reconnect(clientId, MQTT_USERNAME, MQTT_PASSWORD);
         mqttManager.loop();
     }
 }

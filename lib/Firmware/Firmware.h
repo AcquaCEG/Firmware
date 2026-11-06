@@ -1,7 +1,7 @@
 #ifndef FIRMWARE_H
 #define FIRMWARE_H
 
-void manterConexoes();
+void manterConexoes(const char* clientId);
 
 void coletarLeituras();
 
